@@ -1,6 +1,8 @@
 # syntax = docker/dockerfile:1.3-labs
 FROM centos:centos8
 
+ARG BUILD_DATE
+
 # Environment configuration
 ARG DOMAIN="crm.ayxon-dynamics.com"
 ARG SSL_CERT_RSA_KEY_BITS=3072
@@ -9,6 +11,11 @@ ARG SSL_CERT_CN=$DOMAIN
 ARG SSL_CERT_O="Ayxon-Dynamics GmbH"
 ARG SSL_CERT_OU="IT-Department"
 ARG SSL_CERT_C="DE"
+
+LABEL org.label-schema.build-date="$BUILD_DATE" \
+      org.label-schema.name="Zammad" \
+      org.opencontainers.image.authors="drindt@ayxon-dynamics.com" \
+      org.label-schema.docker.cmd="docker run -ti --memory=4g --memory-swap=0 -p 9001:9001 -p 80:80 -p 443:443 ayxon-dynamics/zammad"
 
 # Install required packages for this build
 RUN dnf install -y epel-release glibc-langpack-en wget
