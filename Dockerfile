@@ -136,7 +136,7 @@ command=/usr/bin/zammad run worker
 user=zammad
 EOF
 
-# Clean up dnf
-RUN dnf clean all
+# Update system and clean up dnf
+RUN dnf update -y && dnf clean all
 
 CMD supervisord
