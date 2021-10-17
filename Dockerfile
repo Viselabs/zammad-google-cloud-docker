@@ -20,6 +20,9 @@ LABEL org.label-schema.build-date="$BUILD_DATE" \
 # Install required packages for this build
 RUN dnf install -y epel-release glibc-langpack-en wget
 
+# Configure: timezone
+RUN ln -sf /usr/share/zoneinfo/Europe/Berlin /etc/localtime
+
 # Install/Configure/Run: elasticsearch
 RUN rpm --import https://artifacts.elastic.co/GPG-KEY-elasticsearch
 RUN <<EOF cat > /etc/yum.repos.d/elasticsearch.repo
