@@ -144,6 +144,6 @@ user=zammad
 EOF
 
 # Update system and clean up dnf
-RUN dnf update -y && dnf clean all
+RUN dnf update --security -y && dnf clean all
 
 CMD supervisord
