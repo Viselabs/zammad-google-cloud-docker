@@ -15,7 +15,7 @@ ARG SSL_CERT_C="DE"
 LABEL org.label-schema.build-date="$BUILD_DATE" \
       org.label-schema.name="Zammad" \
       org.opencontainers.image.authors="drindt@ayxon-dynamics.com" \
-      org.label-schema.docker.cmd="docker run -ti --memory=4g --memory-swap=0 -p 9001:9001 -p 80:80 -p 443:443 ayxon-dynamics/zammad"
+      org.label-schema.docker.cmd="docker run -ti --memory=4g --memory-swap=0 -p 9001:9001 -p 80:80 -p 443:443 -v pgsql:/var/lib/pgsql ayxon-dynamics/zammad"
 
 # Install required packages for this build
 RUN dnf install -y epel-release glibc-langpack-en wget
@@ -39,15 +39,9 @@ RUN dnf install -y elasticsearch
 RUN sed "s/\/var\/run\/elasticsearch/\/run\/elasticsearch/g" -i /usr/lib/tmpfiles.d/elasticsearch.conf
 
 # Install/Configure/Run: postgresql
-# TODO VOLUME ["/var/lib/pgsql"]
 RUN dnf install -y postgresql-server
 # Fix/Migration: tmpfiles.d/postgresql.conf:1 drop-in file
 RUN sed "s/\/var\/run\/postgresql/\/run\/postgresql/g" -i /usr/lib/tmpfiles.d/postgresql.conf
-RUN runuser -s /bin/sh -l postgres -c '/usr/bin/initdb -D /var/lib/pgsql/data'
-RUN sed "/shared_buffers/c\shared_buffers = 2GB" -i /var/lib/pgsql/data/postgresql.conf
-RUN sed "/temp_buffers/c\temp_buffers = 256MB" -i /var/lib/pgsql/data/postgresql.conf
-RUN sed "/work_mem/c\work_mem = 10MB" -i /var/lib/pgsql/data/postgresql.conf
-RUN sed "/max_stack_depth/c\max_stack_depth = 5MB" -i /var/lib/pgsql/data/postgresql.conf
 
 # Install/Configure/Run: zammad
 RUN rpm --import https://dl.packager.io/srv/zammad/zammad/key
@@ -61,18 +55,59 @@ repo_gpgcheck=1
 gpgkey=https://dl.packager.io/srv/zammad/zammad/key
 EOF
 RUN dnf install -y zammad
-# Create database and role
-RUN <<EOF
-runuser -l postgres -c "(/usr/bin/postmaster -D /var/lib/pgsql/data &) && \
-sleep 3s && \
-/usr/bin/createdb -E UTF8 zammad && \
-psql -c $'CREATE USER zammad;' && \
-psql -c $'GRANT ALL PRIVILEGES ON DATABASE zammad TO zammad;'" && \
-zammad run rake db:migrate && \
-zammad run rake db:seed && \
-zammad run rails r Cache.clear && \
-zammad run rails r Locale.sync && \
-zammad run rails r Translation.sync
+RUN <<EOF cat > /root/zammad-launcher.sh && chmod +x /root/zammad-launcher.sh
+#!/bin/bash
+# The script is intended to act as a starter. If a database has already been initialized,
+# it is assumed that the system setup is already complete.
+set -ex
+
+function start_postgres_sync () {
+    if [ -f /var/lib/pgsql/data/postgresql.conf ]; then
+        if [ ! -S /run/supervisor/supervisor.sock ]; then
+            echo "The supervisord must be started before this script is called."
+            exit 2
+        fi
+
+        supervisorctl start postgresql
+
+        until runuser postgres -c 'psql -c "select version()"' &> /dev/null; do
+            echo "Waiting for PostgreSQL to be ready..."
+            sleep 1s
+        done
+    fi
+}
+
+if [ ! -f /var/lib/pgsql/data/postgresql.conf ]; then
+    echo "Start PostgreSQL initial setup"
+
+    chown postgres:postgres /var/lib/pgsql
+    pushd /var/lib/pgsql
+    runuser postgres -c '/usr/bin/initdb -D /var/lib/pgsql/data'
+
+    sed '/shared_buffers/c\shared_buffers = 2GB' -i /var/lib/pgsql/data/postgresql.conf
+    sed '/temp_buffers/c\temp_buffers = 256MB' -i /var/lib/pgsql/data/postgresql.conf
+    sed '/work_mem/c\work_mem = 10MB' -i /var/lib/pgsql/data/postgresql.conf
+    sed '/max_stack_depth/c\max_stack_depth = 5MB' -i /var/lib/pgsql/data/postgresql.conf
+
+    start_postgres_sync
+
+    runuser postgres -c '/usr/bin/createdb -E UTF8 zammad'
+    runuser postgres -c $'psql -c \'CREATE USER zammad;\''
+    runuser postgres -c $'psql -c \'GRANT ALL PRIVILEGES ON DATABASE zammad TO zammad;\''
+
+    zammad run rake db:migrate
+    zammad run rake db:seed
+
+    zammad run rails r Locale.sync
+    zammad run rails r Translation.sync
+fi
+
+start_postgres_sync
+
+supervisorctl start zammad-worker
+supervisorctl start zammad-websocket
+supervisorctl start zammad-web
+supervisorctl start nginx
 EOF
 
 # Install/Configure/Run: nginx with self signed ssl certificate
@@ -94,15 +129,15 @@ RUN dnf install -y supervisor
 RUN sed "s/nodaemon=false/nodaemon=true/g" -i /etc/supervisord.conf && \
     sed "s/;user=chrism/user=root/g" -i /etc/supervisord.conf
 
-# Setup services to start with supervisord
-RUN <<EOF cat > /etc/supervisord.d/supervisord-inet-http-server.ini
-[inet_http_server]
-port=*:9001
+RUN <<EOF cat > /etc/supervisord.d/zammad-launcher.ini
+[program:zammad-launcher]
+autorestart=false
+command=/root/zammad-launcher.sh
 EOF
-EXPOSE 9001/tcp
 
 RUN <<EOF cat > /etc/supervisord.d/nginx.ini
 [program:nginx]
+autostart=false
 priority=98
 command=/usr/sbin/nginx -g "daemon off;"
 EOF
@@ -110,7 +145,9 @@ EXPOSE 80/tcp 443/tcp
 
 RUN <<EOF cat > /etc/supervisord.d/postgresql.ini
 [program:postgresql]
-priority=2
+priority=1
+autorestart=unexpected
+startretries=0
 command=/usr/bin/postmaster -D /var/lib/pgsql/data
 user=postgres
 EOF
@@ -125,7 +162,7 @@ EOF
 
 RUN <<EOF cat > /etc/supervisord.d/zammad-web.ini
 [program:zammad-web]
-#autostart=false
+autostart=false
 priority=6
 command=/usr/bin/zammad run web
 user=zammad
@@ -133,7 +170,7 @@ EOF
 
 RUN <<EOF cat > /etc/supervisord.d/zammad-websocket.ini
 [program:zammad-websocket]
-#autostart=false
+autostart=false
 priority=5
 command=/usr/bin/zammad run websocket
 user=zammad
@@ -141,7 +178,7 @@ EOF
 
 RUN <<EOF cat > /etc/supervisord.d/zammad-worker.ini
 [program:zammad-worker]
-#autostart=false
+autostart=false
 priority=4
 command=/usr/bin/zammad run worker
 user=zammad
