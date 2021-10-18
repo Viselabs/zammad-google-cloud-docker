@@ -91,10 +91,11 @@ RUN sed "s/access_log \/var\/log\/nginx\/zammad.access.log/access_log \/dev\/std
 
 # Install/Configure/Run: supervisord
 RUN dnf install -y supervisor
-RUN sed "s/nodaemon=false/nodaemon=true/g" -i /etc/supervisord.conf
+RUN sed "s/nodaemon=false/nodaemon=true/g" -i /etc/supervisord.conf && \
+    sed "s/;user=chrism/user=root/g" -i /etc/supervisord.conf
 
 # Setup services to start with supervisord
-RUN <<EOF cat > /etc/supervisord.d/http-server.ini
+RUN <<EOF cat > /etc/supervisord.d/supervisord-inet-http-server.ini
 [inet_http_server]
 port=*:9001
 EOF
@@ -149,4 +150,4 @@ EOF
 # Update system and clean up dnf
 RUN dnf update --security -y && dnf clean all
 
-CMD supervisord
+CMD ["/usr/bin/supervisord", "-c", "/etc/supervisord.conf"]
