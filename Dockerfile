@@ -11,6 +11,7 @@ ARG SSL_CERT_CN=$DOMAIN
 ARG SSL_CERT_O="Ayxon-Dynamics GmbH"
 ARG SSL_CERT_OU="IT-Department"
 ARG SSL_CERT_C="DE"
+ARG CERTBOT_EMAIL="hostmaster@ayxon-dynamics.com"
 
 LABEL org.label-schema.build-date="$BUILD_DATE" \
       org.label-schema.name="Zammad" \
@@ -108,9 +109,10 @@ supervisorctl start zammad-worker
 supervisorctl start zammad-websocket
 supervisorctl start zammad-web
 supervisorctl start nginx
+supervisorctl start certbot
 EOF
 
-# Install/Configure/Run: nginx with self signed ssl certificate
+# Install/Configure/Run: nginx with self signed ssl certificate until certbot is started
 RUN mkdir -p /etc/nginx/ssl
 RUN wget https://letsencrypt.org/certs/lets-encrypt-x3-cross-signed.pem -P /etc/nginx/ssl
 RUN openssl dhparam -out /etc/nginx/ssl/dhparam.pem $SSL_CERT_RSA_KEY_BITS
@@ -118,11 +120,33 @@ RUN openssl req -nodes -x509 -newkey rsa:$SSL_CERT_RSA_KEY_BITS -days $SSL_CERT_
     -subj "/CN=$SSL_CERT_CN/O=$SSL_CERT_O/OU=$SSL_CERT_OU/C=$SSL_CERT_C" \
     -keyout /etc/nginx/ssl/$DOMAIN-privkey.pem \
     -out /etc/nginx/ssl/$DOMAIN-fullchain.pem
-RUN cp -vf /opt/zammad/contrib/nginx/zammad_ssl.conf /etc/nginx/conf.d/zammad.conf
+COPY zammad_ssl.conf /etc/nginx/conf.d/zammad.conf
 RUN sed "s/example.com/$DOMAIN/g" -i /etc/nginx/conf.d/zammad.conf
 RUN sed "s/error_log  \/var\/log\/nginx\/zammad.error.log/error_log \/dev\/stderr error/g" -i /etc/nginx/conf.d/zammad.conf
 RUN sed "s/access_log \/var\/log\/nginx\/zammad.access.log/access_log \/dev\/stdout/g" -i /etc/nginx/conf.d/zammad.conf
-# TODO certbot integration
+
+# Install/Configure: certbot
+RUN dnf install -y certbot
+RUN <<EOF cat > /root/run-certbot.sh && chmod +x /root/run-certbot.sh
+#!/bin/bash
+set -ex
+mkdir -p /var/www/html && \
+while true
+do
+    certbot certonly -n --agree-tos \
+        --webroot -w /var/www/html \
+        -d $DOMAIN \
+        --rsa-key-size $SSL_CERT_RSA_KEY_BITS \
+        -m $CERTBOT_EMAIL && \
+
+    ln -sf /etc/letsencrypt/live/crm.ayxon-dynamics.com/privkey.pem /etc/nginx/ssl/$DOMAIN-privkey.pem && \
+    ln -sf /etc/letsencrypt/live/crm.ayxon-dynamics.com/fullchain.pem /etc/nginx/ssl/$DOMAIN-fullchain.pem && \
+
+    supervisorctl restart nginx && \
+
+    sleep 24h
+done
+EOF
 
 # Install/Configure/Run: supervisord
 RUN dnf install -y supervisor
@@ -142,6 +166,14 @@ priority=98
 command=/usr/sbin/nginx -g "daemon off;"
 EOF
 EXPOSE 80/tcp 443/tcp
+
+RUN <<EOF cat > /etc/supervisord.d/certbot.ini
+[program:certbot]
+autostart=false
+priority=99
+autorestart=false
+command=/root/run-certbot.sh
+EOF
 
 RUN <<EOF cat > /etc/supervisord.d/postgresql.ini
 [program:postgresql]
