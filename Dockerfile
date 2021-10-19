@@ -143,7 +143,7 @@ do
     ln -sf /etc/letsencrypt/live/crm.ayxon-dynamics.com/privkey.pem /etc/nginx/ssl/$DOMAIN-privkey.pem && \
     ln -sf /etc/letsencrypt/live/crm.ayxon-dynamics.com/fullchain.pem /etc/nginx/ssl/$DOMAIN-fullchain.pem && \
 
-    supervisorctl restart nginx && \
+    supervisorctl restart nginx
 
     sleep 24h
 done
