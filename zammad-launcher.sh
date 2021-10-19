@@ -1,0 +1,83 @@
+#!/bin/bash
+# The script is intended to act as a starter. If a database has already been initialized,
+# it is assumed that the system setup is already complete.
+
+set -ex
+
+function start_postgres_sync () {
+    if [ -f /var/lib/pgsql/data/postgresql.conf ]; then
+        if [ ! -S /run/supervisor/supervisor.sock ]; then
+            echo "The supervisord must be started before this script is called."
+            exit 2
+        fi
+
+        supervisorctl start postgresql
+
+        until runuser postgres -c 'psql -c "select version()"' &> /dev/null; do
+            echo "Waiting for PostgreSQL to be ready..."
+            sleep 1s
+        done
+    fi
+}
+
+if [ ! -f /var/lib/pgsql/data/postgresql.conf ]; then
+    echo "Start PostgreSQL initial setup"
+
+    chown postgres:postgres /var/lib/pgsql
+    pushd /var/lib/pgsql
+    runuser postgres -c '/usr/bin/initdb -D /var/lib/pgsql/data'
+
+    sed '/shared_buffers/c\shared_buffers = 2GB' -i /var/lib/pgsql/data/postgresql.conf
+    sed '/temp_buffers/c\temp_buffers = 256MB' -i /var/lib/pgsql/data/postgresql.conf
+    sed '/work_mem/c\work_mem = 10MB' -i /var/lib/pgsql/data/postgresql.conf
+    sed '/max_stack_depth/c\max_stack_depth = 5MB' -i /var/lib/pgsql/data/postgresql.conf
+
+    start_postgres_sync
+
+    runuser postgres -c '/usr/bin/createdb -E UTF8 zammad'
+    runuser postgres -c $'psql -c \'CREATE USER zammad;\''
+    runuser postgres -c $'psql -c \'GRANT ALL PRIVILEGES ON DATABASE zammad TO zammad;\''
+
+    zammad run rake db:migrate
+    zammad run rake db:seed
+fi
+
+zammad run rails r Cache.clear
+zammad run rails r Locale.sync
+zammad run rails r Translation.sync
+
+supervisorctl start zammad-worker
+supervisorctl start zammad-websocket
+supervisorctl start zammad-web
+
+openssl dhparam -out /etc/nginx/ssl/dhparam.pem "$SSL_CERT_RSA_KEY_BITS"
+openssl req -nodes -x509 -newkey rsa:"$SSL_CERT_RSA_KEY_BITS" -days "$SSL_CERT_DAYS_VALID" \
+    -subj "/CN=$SSL_CERT_CN/O=$SSL_CERT_O/OU=$SSL_CERT_OU/C=$SSL_CERT_C" \
+    -keyout /etc/nginx/ssl/"$DOMAIN"-privkey.pem \
+    -out /etc/nginx/ssl/"$DOMAIN"-fullchain.pem
+sed "s/example.com/$DOMAIN/g" -i /etc/nginx/conf.d/zammad.conf
+# sed "s/error_log  \/var\/log\/nginx\/zammad.error.log/error_log \/dev\/stderr error/g" -i /etc/nginx/conf.d/zammad.conf
+# sed "s/access_log \/var\/log\/nginx\/zammad.access.log/access_log \/dev\/stdout/g" -i /etc/nginx/conf.d/zammad.conf
+supervisorctl start nginx
+
+<<EOF cat > /root/certbot-launcher.sh && chmod +x /root/certbot-launcher.sh
+#!/bin/bash
+set -ex
+mkdir -p /var/www/html && \
+while true
+do
+    certbot certonly -n --agree-tos \
+        --webroot -w /var/www/html \
+        -d $DOMAIN \
+        --rsa-key-size $SSL_CERT_RSA_KEY_BITS \
+        -m $CERTBOT_EMAIL && \
+
+    ln -sf /etc/letsencrypt/live/$DOMAIN/privkey.pem /etc/nginx/ssl/$DOMAIN-privkey.pem && \
+    ln -sf /etc/letsencrypt/live/$DOMAIN/fullchain.pem /etc/nginx/ssl/$DOMAIN-fullchain.pem && \
+
+    supervisorctl restart nginx
+
+    sleep 24h
+done
+EOF
+supervisorctl start certbot
