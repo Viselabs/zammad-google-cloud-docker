@@ -5,7 +5,7 @@ if [ -z "$1" ] || [ ! -d "$1" ]; then
   echo "You have to enter the name of a module."
   echo ""
   echo "Examples:"
-  echo "$ deploy.sh MODULE VERSION"
+  echo "$ deploy.sh REPOSITORY VERSION"
   echo "$ deploy.sh zammad 5.0.1 staging-1"
   echo "$ deploy.sh zammad 5.0.1"
   echo "$ deploy.sh zammad"

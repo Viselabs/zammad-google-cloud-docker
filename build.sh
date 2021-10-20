@@ -5,7 +5,7 @@ if [ -z "$1" ] || [ ! -d "$1" ]; then
   echo "You have to enter the name of a module."
   echo ""
   echo "Examples:"
-  echo "$ build.sh MODULE VERSION"
+  echo "$ build.sh REPOSITORY VERSION"
   echo "$ build.sh ayxon-dynamics/centos-zammad 5.0.1"
   echo "$ build.sh ayxon-dynamics/centos-zammad"
   exit 1
