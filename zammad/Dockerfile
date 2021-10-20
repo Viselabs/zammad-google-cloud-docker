@@ -80,7 +80,5 @@ command=/usr/bin/zammad run worker
 user=zammad
 EOF
 
-RUN dnf clean all
-
 COPY zammad-launcher.sh /root
 CMD ["/usr/bin/supervisord", "-c", "/etc/supervisord.conf"]
