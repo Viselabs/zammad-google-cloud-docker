@@ -51,7 +51,6 @@ EOF
 
 RUN <<EOF cat > /etc/supervisord.d/elasticsearch.ini
 [program:elasticsearch]
-autostart=false
 priority=3
 command=/usr/share/elasticsearch/bin/systemd-entrypoint
 user=elasticsearch
