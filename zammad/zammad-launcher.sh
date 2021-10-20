@@ -56,7 +56,7 @@ supervisorctl start zammad-websocket
 supervisorctl start zammad-web
 
 openssl req -nodes -x509 -newkey rsa:"$SSL_CERT_RSA_KEY_BITS" -days "$SSL_CERT_DAYS_VALID" \
-    -subj "/CN=$SSL_CERT_CN/O=$SSL_CERT_O/OU=$SSL_CERT_OU/C=$SSL_CERT_C" \
+    -subj "/CN=$DOMAIN/O=$SSL_CERT_O/OU=$SSL_CERT_OU/C=$SSL_CERT_C" \
     -keyout /etc/nginx/ssl/"$DOMAIN"-privkey.pem \
     -out /etc/nginx/ssl/"$DOMAIN"-fullchain.pem
 sed "s/example.com/$DOMAIN/g" -i /etc/nginx/conf.d/zammad.conf
