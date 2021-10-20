@@ -46,6 +46,7 @@ RUN echo "http.max_content_length: 400mb" >> /etc/elasticsearch/elasticsearch.ym
 RUN sed "s/\/var\/run\/postgresql/\/run\/postgresql/g" -i /usr/lib/tmpfiles.d/postgresql.conf
 
 # Install/Configure/Run: nginx with self signed ssl certificate until certbot is started
+RUN rm -rf /usr/share/nginx/html
 RUN mkdir -p /etc/nginx/ssl
 RUN wget https://letsencrypt.org/certs/lets-encrypt-x3-cross-signed.pem -P /etc/nginx/ssl
 RUN openssl dhparam -out /etc/nginx/ssl/dhparam.pem "$SSL_CERT_RSA_KEY_BITS"
