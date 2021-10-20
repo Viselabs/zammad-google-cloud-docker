@@ -48,7 +48,8 @@ RUN sed "s/\/var\/run\/postgresql/\/run\/postgresql/g" -i /usr/lib/tmpfiles.d/po
 # Install/Configure/Run: nginx with self signed ssl certificate until certbot is started
 RUN mkdir -p /etc/nginx/ssl
 RUN wget https://letsencrypt.org/certs/lets-encrypt-x3-cross-signed.pem -P /etc/nginx/ssl
-RUN openssl dhparam -out /etc/nginx/ssl/dhparam.pem "$SSL_CERT_RSA_KEY_BITS"
+#RUN openssl dhparam -out /etc/nginx/ssl/dhparam.pem "$SSL_CERT_RSA_KEY_BITS"
+COPY dhparam.pem /etc/nginx/ssl/dhparam.pem
 COPY zammad_ssl.conf /etc/nginx/conf.d/zammad.conf
 
 RUN sed "s/nodaemon=false/nodaemon=true/g" -i /etc/supervisord.conf && \
