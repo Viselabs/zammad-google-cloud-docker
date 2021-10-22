@@ -64,7 +64,6 @@ supervisorctl start nginx
 
 <<EOF cat > /root/certbot-launcher.sh && chmod +x /root/certbot-launcher.sh
 #!/bin/bash
-set -ex
 mkdir -p /var/www/html && \
 while true
 do
