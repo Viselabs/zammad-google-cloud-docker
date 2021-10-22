@@ -42,6 +42,7 @@ RUN dnf install -y epel-release && \
 
 RUN sed "s/\/var\/run\/elasticsearch/\/run\/elasticsearch/g" -i /usr/lib/tmpfiles.d/elasticsearch.conf
 RUN echo "http.max_content_length: 400mb" >> /etc/elasticsearch/elasticsearch.yml
+RUN echo -e "-Xms1g\n-Xmx1g" > /etc/elasticsearch/jvm.options.d/e2-medium.options
 
 RUN sed "s/\/var\/run\/postgresql/\/run\/postgresql/g" -i /usr/lib/tmpfiles.d/postgresql.conf
 
