@@ -1,5 +1,5 @@
 #!/bin/bash
-#set -ex
+set -ex
 
 if [ -z "$1" ] || [ ! -d "$1" ]; then
   echo "You have to enter the name of a module."
@@ -17,10 +17,10 @@ if [ -n "$2" ]; then
   TAG=$2
 fi
 
-docker push eu.gcr.io/$(gcloud config get-value project)/"$1"
+docker push eu.gcr.io/"$(gcloud config get-value project)"/"$1"
 
 if [ -n "$2" ]; then
-  docker push eu.gcr.io/$(gcloud config get-value project)/"$1":"$TAG"
+  docker push eu.gcr.io/"$(gcloud config get-value project)"/"$1":"$TAG"
 fi
 
 if [ -n "$3" ]; then
