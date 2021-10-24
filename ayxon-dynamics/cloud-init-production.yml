@@ -1,0 +1,14 @@
+#cloud-config
+
+# Path information only valid for image: cos-81-12871-1317-1
+# $ gcloud compute instances add-metadata test-1 --metadata-from-file=user-data=ayxon-dynamics/cloud-init.yml
+# sudo cloud-init clean
+# sudo cloud-init init
+
+bootcmd:
+  - fallocate -l 2G /var/swapfile
+  - chmod 600 /var/swapfile
+  - mkswap /var/swapfile
+  - swapon /var/swapfile
+runcmd:
+  - systemctl start node-problem-detector
