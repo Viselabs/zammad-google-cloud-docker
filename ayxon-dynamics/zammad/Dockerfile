@@ -1,5 +1,5 @@
 # syntax = docker/dockerfile:1.3-labs
-FROM ayxon-dynamics/centos-zammad:5.0.1
+FROM ayxon-dynamics/centos-zammad:5.0.3
 
 ARG BUILD_DATE
 

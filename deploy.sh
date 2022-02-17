@@ -6,9 +6,9 @@ if [ -z "$1" ] || [ ! -d "$1" ]; then
   echo ""
   echo "Examples:"
   echo "$ deploy.sh REPOSITORY VERSION"
-  echo "$ deploy.sh zammad 5.0.1 staging-1"
-  echo "$ deploy.sh zammad 5.0.1"
-  echo "$ deploy.sh zammad"
+  echo "$ deploy.sh ayxon-dynamics/zammad 5.0.3 staging-1"
+  echo "$ deploy.sh ayxon-dynamics/zammad 5.0.3"
+  echo "$ deploy.sh ayxon-dynamics/zammad"
   exit 1
 fi
 

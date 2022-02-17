@@ -6,7 +6,7 @@ if [ -z "$1" ] || [ ! -d "$1" ]; then
   echo ""
   echo "Examples:"
   echo "$ build.sh REPOSITORY VERSION"
-  echo "$ build.sh ayxon-dynamics/centos-zammad 5.0.1"
+  echo "$ build.sh ayxon-dynamics/centos-zammad 5.0.3"
   echo "$ build.sh ayxon-dynamics/centos-zammad"
   exit 1
 fi
