@@ -1,12 +1,12 @@
 # syntax=docker/dockerfile:1.3-labs
-FROM centos:centos8
+FROM ayxon-dynamics/centos8-stream
 
 ARG BUILD_DATE
 
 ENV SSL_CERT_RSA_KEY_BITS=4096
 
 LABEL org.label-schema.build-date="$BUILD_DATE" \
-      org.label-schema.name="Base image of Zammad on CentOS" \
+      org.label-schema.name="Base image of Zammad on CentOS Stream" \
       org.opencontainers.image.authors="drindt@ayxon-dynamics.com" \
       org.label-schema.docker.cmd="docker run --rm -ti ayxon-dynamics/centos-zammad bash"
 
