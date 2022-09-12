@@ -42,6 +42,7 @@ if [ ! -f /var/lib/pgsql/data/postgresql.conf ]; then
     zammad run rake db:seed
 fi
 
+zammad run rake db:migrate
 zammad run rails r Cache.clear
 zammad run rails r Locale.sync
 zammad run rails r Translation.sync
