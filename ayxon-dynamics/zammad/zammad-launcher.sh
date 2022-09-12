@@ -47,7 +47,7 @@ zammad run rails r Cache.clear
 zammad run rails r Locale.sync
 zammad run rails r Translation.sync
 zammad run rails r "Setting.set('es_url', 'http://localhost:9200')"
-zammad run rake searchindex:rebuild
+zammad run rake zammad:searchindex:rebuild
 zammad run rails r "Setting.set('es_attachment_ignore', \
                     [ '.png', '.jpg', '.jpeg', '.mpeg', '.mpg', '.mov', \
                     '.bin', '.exe', '.box', '.mbox' ] )"
