@@ -21,7 +21,7 @@ LABEL org.label-schema.docker.cmd="docker run --rm -ti --memory=4g --memory-swap
 RUN ln -sf /usr/share/zoneinfo/Europe/Berlin /etc/localtime
 
 # Bring everything up to date
-RUN dnf -y install epel-release
+RUN dnf -y install epel-release glibc-langpack-en
 RUN dnf -y update --refresh
 RUN dnf -y distro-sync
 
