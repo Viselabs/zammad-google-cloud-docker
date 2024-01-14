@@ -57,7 +57,7 @@ fi
 #zammad run rails r Cache.clear
 #zammad run rails r Locale.sync
 #zammad run rails r Translation.sync
-#zammad run rake zammad:searchindex:rebuild
+zammad run rake zammad:searchindex:rebuild[2]
 
 supervisorctl start zammad-worker
 supervisorctl start zammad-websocket
