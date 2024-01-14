@@ -80,7 +80,7 @@ gpgkey=https://dl.packager.io/srv/zammad/zammad/key
 name=Zammad for CentOS 8 - Zammad
 repo_gpgcheck=1
 EOF
-RUN dnf -y install zammad libxcrypt-compat compat-openssl11 sendmail
+RUN dnf -y install zammad
 RUN <<EOF cat > /etc/supervisord.d/redis.ini
 [program:redis]
 autostart=true
