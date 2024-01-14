@@ -30,26 +30,27 @@ RUN dnf -y install supervisor
 RUN sed "s/;user=chrism/user=root/g" -i /etc/supervisord.conf
 RUN sed "s/nodaemon=false/nodaemon=true/g" -i /etc/supervisord.conf
 
-# Setup for Elasticsearch (version 8.x is the latest release)
+# Setup for Elasticsearch v7.17.16
 RUN <<EOF cat > /etc/yum.repos.d/elasticsearch.repo
 [elasticsearch]
 autorefresh=1
-baseurl=https://artifacts.elastic.co/packages/8.x/yum
+baseurl=https://artifacts.elastic.co/packages/7.x/yum
 enabled=1
 gpgcheck=1
 gpgkey=https://artifacts.elastic.co/GPG-KEY-elasticsearch
-name=Elasticsearch repository for 8.x packages
+name=Elasticsearch repository for 7.x packages
 repo_gpgcheck=1
 type=rpm-md
 EOF
 RUN dnf -y install elasticsearch
 RUN sed "s/\/var\/run\/elasticsearch/\/run\/elasticsearch/g" -i /usr/lib/tmpfiles.d/elasticsearch.conf
 RUN echo "http.max_content_length: 400mb" >> /etc/elasticsearch/elasticsearch.yml
-RUN sed -i 's/xpack.security.enabled: true/xpack.security.enabled: false/' /etc/elasticsearch/elasticsearch.yml
+RUN echo "indices.query.bool.max_clause_count: 2000" >> /etc/elasticsearch/elasticsearch.yml
 RUN echo -e "-Xms1g\n-Xmx1g" > /etc/elasticsearch/jvm.options.d/e2-medium.options
+RUN echo "y" | /usr/share/elasticsearch/bin/elasticsearch-plugin install ingest-attachment
 RUN <<EOF cat > /etc/supervisord.d/elasticsearch.ini
 [program:elasticsearch]
-command=/usr/share/elasticsearch/bin/systemd-entrypoint
+command=/usr/share/elasticsearch/bin/systemd-entrypoint -p /var/lib/elasticsearch/elasticsearch.pid --quiet
 priority=3
 #stderr_logfile=/dev/stderr
 #stdout_logfile=/dev/stdout
