@@ -108,6 +108,11 @@ command=/usr/bin/zammad run worker
 priority=4
 user=zammad
 EOF
+# Security fixes
+RUN /opt/zammad/vendor/ruby-3.1.3/bin/gem install time -v 0.2.2
+RUN rm /opt/zammad/vendor/ruby-3.1.3/lib/ruby/gems/3.1.0/specifications/default/time-0.2.0.gemspec
+RUN /opt/zammad/vendor/ruby-3.1.3/bin/gem install uri -v 0.11.2
+RUN rm /opt/zammad/vendor/ruby-3.1.3/lib/ruby/gems/3.1.0/specifications/default/uri-0.11.0.gemspec
 
 # Setup Nginx
 RUN dnf -y install wget
