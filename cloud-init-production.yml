@@ -1,0 +1,13 @@
+#cloud-config
+
+# $ gcloud compute instances add-metadata zammad-620-1 --metadata-from-file=user-data=cloud-init-production.yml
+# $ sudo cloud-init clean
+# $ sudo cloud-init init
+
+bootcmd:
+  - fallocate -l 2G /var/swapfile
+  - chmod 600 /var/swapfile
+  - mkswap /var/swapfile
+  - swapon /var/swapfile
+runcmd:
+  - systemctl start node-problem-detector
