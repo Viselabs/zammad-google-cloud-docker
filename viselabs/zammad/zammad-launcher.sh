@@ -34,9 +34,7 @@ if [ ! -f /var/lib/pgsql/data/postgresql.conf ]; then
 
     start_postgres_sync
 
-#    runuser postgres -c '/usr/bin/createdb -E UTF8 zammad'
     runuser postgres -c $'psql -c \'CREATE USER zammad;\''
-#    runuser postgres -c $'psql -c \'GRANT ALL PRIVILEGES ON DATABASE zammad TO zammad;\''
     runuser postgres -c $'psql -c \'ALTER USER zammad CREATEDB;\''
 
     zammad run rake db:create
@@ -45,19 +43,10 @@ if [ ! -f /var/lib/pgsql/data/postgresql.conf ]; then
       zammad run rake db:seed
     fi
 
-    zammad run rails r "Setting.set('es_url', 'http://localhost:9200')"
-#    zammad run rails r "Setting.set('es_attachment_ignore', \
-#                        [ '.png', '.jpg', '.jpeg', '.mpeg', '.mpg', '.mov', \
-#                        '.bin', '.exe', '.box', '.mbox' ] )"
-
-    echo "Initial setup of Zammad is complete."
+    zammad run rails r "Setting.set('es_url', 'http://localhost:9200')" &
 fi
 
-#zammad run rake db:migrate
-#zammad run rails r Cache.clear
-#zammad run rails r Locale.sync
-#zammad run rails r Translation.sync
-zammad run rake zammad:searchindex:rebuild[2]
+zammad run rake zammad:searchindex:rebuild[2] &
 
 supervisorctl start zammad-worker
 supervisorctl start zammad-websocket
@@ -94,3 +83,4 @@ do
 done
 EOF
 supervisorctl start certbot
+wait
