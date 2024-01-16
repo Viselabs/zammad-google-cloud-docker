@@ -52,8 +52,6 @@ RUN <<EOF cat > /etc/supervisord.d/elasticsearch.ini
 [program:elasticsearch]
 command=/usr/share/elasticsearch/bin/systemd-entrypoint -p /var/lib/elasticsearch/elasticsearch.pid --quiet
 priority=3
-#stderr_logfile=/dev/stderr
-#stdout_logfile=/dev/stdout
 user=elasticsearch
 EOF
 # Security fixes
@@ -163,7 +161,6 @@ RUN <<EOF cat > /etc/supervisord.d/zammad-launcher.ini
 autorestart=false
 command=/root/zammad-launcher.sh
 priority=2
-#stdout_logfile=/dev/stdout
 EOF
 
 # Setup certbot
@@ -173,7 +170,6 @@ RUN <<EOF cat > /etc/supervisord.d/certbot.ini
 autorestart=false
 autostart=false
 command=/root/certbot-launcher.sh
-#stdout_logfile=/dev/stdout
 EOF
 
 # clean-up
