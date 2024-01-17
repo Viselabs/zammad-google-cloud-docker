@@ -38,15 +38,13 @@ if [ ! -f /var/lib/pgsql/data/postgresql.conf ]; then
     runuser postgres -c $'psql -c \'ALTER USER zammad CREATEDB;\''
 
     zammad run rake db:create
-    if ! "zammad run rake db:seed"; then
-      zammad run rake db:migrate
-      zammad run rake db:seed
-    fi
+    zammad run rake db:migrate
+    zammad run rake db:seed
 
     zammad run rails r "Setting.set('es_url', 'http://localhost:9200')" &
+    zammad run rails r Locale.sync
+    zammad run rails r Translation.sync
 fi
-
-zammad run rake zammad:searchindex:rebuild[2] &
 
 supervisorctl start zammad-worker
 supervisorctl start zammad-websocket
@@ -84,4 +82,3 @@ do
 done
 EOF
 supervisorctl start certbot
-wait
