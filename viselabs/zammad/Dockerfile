@@ -145,7 +145,6 @@ RUN dnf -y install wget
 RUN rm -rf /usr/share/nginx/html
 RUN mkdir -p /etc/nginx/ssl
 RUN wget https://letsencrypt.org/certs/lets-encrypt-x3-cross-signed.pem -P /etc/nginx/ssl
-RUN openssl dhparam -out /etc/nginx/ssl/dhparam.pem "$SSL_CERT_RSA_KEY_BITS"
 COPY zammad_ssl.conf /etc/nginx/conf.d/zammad.conf
 RUN sed -i "s/example.com/$DOMAIN/" /etc/nginx/conf.d/zammad.conf
 RUN <<EOF cat > /etc/supervisord.d/nginx.ini
