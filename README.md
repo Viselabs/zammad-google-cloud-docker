@@ -116,6 +116,7 @@ gcloud compute instances create-with-container zammad-620-1 \
   --instance-termination-action=STOP \
   --machine-type=e2-medium \
   --metadata=DOMAIN=support.coloryzer.com \
+  --network-tier=STANDARD \
   --project="$(gcloud config get-value project)" \
   --provisioning-model=SPOT \
   --public-ptr \
