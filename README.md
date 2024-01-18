@@ -123,7 +123,8 @@ gcloud compute instances create-with-container zammad-620-1 \
   --public-ptr-domain=support.coloryzer.com \
   --shielded-integrity-monitoring \
   --shielded-secure-boot \
-  --shielded-vtpm
+  --shielded-vtpm \
+  --tags=http-server,https-server
 ```
 ⚠️ It can take up to **10 minutes** for the instance to be accessible after it is started for the first time.
 
