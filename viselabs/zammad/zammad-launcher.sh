@@ -2,8 +2,6 @@
 # The script is intended to act as a starter. If a database has already been initialized,
 # it is assumed that the system setup is already complete.
 
-set -ex
-
 function start_postgres_sync () {
     if [ -f /var/lib/pgsql/data/postgresql.conf ]; then
         if [ ! -S /run/supervisor/supervisor.sock ]; then
@@ -24,8 +22,7 @@ if [ ! -f /var/lib/pgsql/data/postgresql.conf ]; then
     echo "Start PostgreSQL initial setup"
 
     chown postgres:postgres /var/lib/pgsql
-    pushd /var/lib/pgsql
-    runuser postgres -c '/usr/bin/initdb -D /var/lib/pgsql/data'
+    (cd /var/lib/pgsql && runuser postgres -c '/usr/bin/initdb -D /var/lib/pgsql/data')
 
     sed '/shared_buffers/c\shared_buffers = 2GB' -i /var/lib/pgsql/data/postgresql.conf
     sed '/temp_buffers/c\temp_buffers = 256MB' -i /var/lib/pgsql/data/postgresql.conf
