@@ -14,6 +14,9 @@ LABEL org.label-schema.docker.cmd="docker run --rm -ti --memory=4g --memory-swap
 # Set the system time zone
 RUN ln -sf /usr/share/zoneinfo/Europe/Berlin /etc/localtime
 
+# Only use fast mirror servers
+RUN echo "fastestmirror=1" >> /etc/dnf/dnf.conf
+
 # Bring everything up to date
 RUN dnf -y install epel-release glibc-langpack-en
 RUN dnf -y update --refresh
