@@ -141,10 +141,9 @@ RUN /opt/zammad/vendor/ruby-3.1.3/bin/gem install uri -v 0.11.2
 RUN rm /opt/zammad/vendor/ruby-3.1.3/lib/ruby/gems/3.1.0/specifications/default/uri-0.11.0.gemspec
 
 # Setup Nginx
-RUN dnf -y install wget
 RUN rm -rf /usr/share/nginx/html
 RUN mkdir -p /etc/nginx/ssl
-RUN wget https://letsencrypt.org/certs/lets-encrypt-x3-cross-signed.pem -P /etc/nginx/ssl
+RUN (cd /etc/nginx/ssl && curl -O https://letsencrypt.org/certs/lets-encrypt-x3-cross-signed.pem)
 COPY zammad_ssl.conf /etc/nginx/conf.d/zammad.conf
 RUN sed -i "s/example.com/$DOMAIN/" /etc/nginx/conf.d/zammad.conf
 RUN <<EOF cat > /etc/supervisord.d/nginx.ini
