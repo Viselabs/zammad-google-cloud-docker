@@ -50,35 +50,29 @@ supervisorctl start zammad-worker
 supervisorctl start zammad-websocket
 supervisorctl start zammad-web
 
-openssl dhparam -out /etc/nginx/ssl/dhparam.pem "$SSL_CERT_RSA_KEY_BITS"
-openssl req -nodes -x509 -newkey rsa:"$SSL_CERT_RSA_KEY_BITS" -days "$SSL_CERT_DAYS_VALID" \
-    -subj "/CN=$DOMAIN/O=$SSL_CERT_O/OU=$SSL_CERT_OU/C=$SSL_CERT_C" \
-    -keyout /etc/nginx/ssl/"$DOMAIN"-privkey.pem \
-    -out /etc/nginx/ssl/"$DOMAIN"-fullchain.pem
-sed "s/example.com/$DOMAIN/g" -i /etc/nginx/conf.d/zammad.conf
-supervisorctl start nginx
-
-<<EOF cat > /root/certbot-launcher.sh && chmod +x /root/certbot-launcher.sh
+<<EOF cat > /root/acme-launcher.sh && chmod +x /root/acme-launcher.sh
 #!/bin/bash
-set -xe
-mkdir -p /var/www/html && \
+ACME_HOME="/var/lib/pgsql/acme"
+WWW_HOME="/var/www/html"
+mkdir -p \${ACME_HOME} \${WWW_HOME}
 while true
 do
-    certbot certonly \
-        --cert-name $DOMAIN \
-        -n \
-        --agree-tos \
-        --webroot -w /var/www/html \
-        -d $DOMAIN \
-        --rsa-key-size $SSL_CERT_RSA_KEY_BITS \
-        -m $CERTBOT_EMAIL && \
+  /root/acme.sh --issue \
+                --preferred-chain "isrg" \
+                --server letsencrypt \
+                -d ${DOMAIN} \
+                -k ec-521 \
+                -w \${WWW_HOME} \
+                --home \${ACME_HOME}
 
-    ln -sf /etc/letsencrypt/live/$DOMAIN/privkey.pem /etc/nginx/ssl/$DOMAIN-privkey.pem && \
-    ln -sf /etc/letsencrypt/live/$DOMAIN/fullchain.pem /etc/nginx/ssl/$DOMAIN-fullchain.pem && \
+  ln -sf \${ACME_HOME}/${DOMAIN}_ecc/${DOMAIN}.key /etc/nginx/ssl/${DOMAIN}-privkey.pem && \
+  ln -sf \${ACME_HOME}/${DOMAIN}_ecc/fullchain.cer /etc/nginx/ssl/${DOMAIN}-fullchain.pem && \
+  ln -sf \${ACME_HOME}/${DOMAIN}_ecc/ca.cer /etc/nginx/ssl/lets-encrypt-x3-cross-signed.pem && \
 
-    supervisorctl restart nginx
+  supervisorctl restart nginx
 
-    sleep 24h
+  echo "I'll try again in 24 hours..."
+  sleep 24h
 done
 EOF
-supervisorctl start certbot
+supervisorctl start acme

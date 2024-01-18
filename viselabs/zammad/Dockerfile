@@ -2,13 +2,7 @@ FROM quay.io/centos/centos:stream8
 
 ARG BUILD_DATE
 
-ENV CERTBOT_EMAIL="hostmaster@viselabs.com"
 ENV DOMAIN="support.coloryzer.com"
-ENV SSL_CERT_C="DE"
-ENV SSL_CERT_DAYS_VALID=90
-ENV SSL_CERT_O="Viselabs"
-ENV SSL_CERT_OU="IT-Department"
-ENV SSL_CERT_RSA_KEY_BITS=4096
 
 EXPOSE 80/tcp 443/tcp
 
@@ -143,7 +137,6 @@ RUN rm /opt/zammad/vendor/ruby-3.1.3/lib/ruby/gems/3.1.0/specifications/default/
 # Setup Nginx
 RUN rm -rf /usr/share/nginx/html
 RUN mkdir -p /etc/nginx/ssl
-RUN (cd /etc/nginx/ssl && curl -O https://letsencrypt.org/certs/lets-encrypt-x3-cross-signed.pem)
 COPY zammad_ssl.conf /etc/nginx/conf.d/zammad.conf
 RUN sed -i "s/example.com/$DOMAIN/" /etc/nginx/conf.d/zammad.conf
 RUN <<EOF cat > /etc/supervisord.d/nginx.ini
@@ -161,13 +154,14 @@ command=/root/zammad-launcher.sh
 priority=2
 EOF
 
-# Setup certbot
-RUN dnf -y install certbot
-RUN <<EOF cat > /etc/supervisord.d/certbot.ini
-[program:certbot]
+# Setup acme.sh
+RUN dnf -y install socat
+RUN (cd /root/ && curl -O https://raw.githubusercontent.com/acmesh-official/acme.sh/master/acme.sh && chmod +x acme.sh)
+RUN <<EOF cat > /etc/supervisord.d/acme.ini
+[program:acme]
 autorestart=false
 autostart=false
-command=/root/certbot-launcher.sh
+command=/root/acme-launcher.sh
 EOF
 
 # clean-up
