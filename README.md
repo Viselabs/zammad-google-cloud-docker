@@ -35,10 +35,10 @@
 
 ## Versions (at the time of release)
 * CentOS Stream 8
-* Elasticsearch v7.17.16
+* Elasticsearch v7.17.17
 * Nginx v1.14.1
 * PostgreSQL v10.23
-* Zammad v6.2.0-1704877727.2bda00c4.centos8
+* Zammad v6.2.0-1705920690.db7738e0.centos8
 
 ## What the additional files are for
 ### `zammad-launcher.sh`
@@ -203,10 +203,9 @@ zammad run rake zammad:searchindex:rebuild[2]
 * External disk is formatted with `ext4` initially
 * It can take up to 10 minutes for Zammad to be accessible via the browser after starting
 
-## Known Issues
-* _Elasticsearch_ uses _Bouncy Castle_ and introduce a **not yet fixed** vulnerability (CVE-2023-33201)
-  * The product does not validate, or incorrectly validates, a certificate.
-* 
+## Known Issues due to unavailable corrections
+* setuptools (CVE-2022-40897)
+* pip (CVE-2019-20916, CVE-2021-3572, CVE-2023-5752)
 
 ## Add swap memory to the VM instance
 It seems that this one is not really needed.

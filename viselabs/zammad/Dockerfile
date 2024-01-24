@@ -55,28 +55,11 @@ EOF
 RUN rm /usr/share/elasticsearch/modules/x-pack-identity-provider/guava-19.0.jar /usr/share/elasticsearch/modules/x-pack-security/guava-19.0.jar
 RUN cp /usr/share/elasticsearch/modules/x-pack-watcher/guava-32.0.1-jre.jar /usr/share/elasticsearch/modules/x-pack-identity-provider/guava-19.0.jar
 RUN cp /usr/share/elasticsearch/modules/x-pack-watcher/guava-32.0.1-jre.jar /usr/share/elasticsearch/modules/x-pack-security/guava-19.0.jar
-RUN rm /usr/share/elasticsearch/plugins/ingest-attachment/commons-io-2.6.jar
-RUN cd /usr/share/elasticsearch/plugins/ingest-attachment/ && curl -O https://repo1.maven.org/maven2/commons-io/commons-io/2.7/commons-io-2.7.jar
 RUN rm /usr/share/elasticsearch/modules/x-pack-security/nimbus-jose-jwt-9.23.jar
-RUN find /usr/share/elasticsearch/modules/ -type f -name httpclient-4.5.10.jar -exec rm -rf {} \;
-RUN cd /usr/share/elasticsearch/modules/ingest-common/ && curl -O https://repo1.maven.org/maven2/org/apache/httpcomponents/httpclient/4.5.13/httpclient-4.5.13.jar
-RUN cp /usr/share/elasticsearch/modules/ingest-common/httpclient-4.5.13.jar /usr/share/elasticsearch/modules/kibana/
-RUN cp /usr/share/elasticsearch/modules/ingest-common/httpclient-4.5.13.jar /usr/share/elasticsearch/modules/reindex/
-RUN cp /usr/share/elasticsearch/modules/ingest-common/httpclient-4.5.13.jar /usr/share/elasticsearch/modules/repository-url/
-RUN cp /usr/share/elasticsearch/modules/ingest-common/httpclient-4.5.13.jar /usr/share/elasticsearch/modules/x-pack-core/
-RUN rm /usr/share/elasticsearch/plugins/ingest-attachment/poi-scratchpad-4.1.2.jar
-RUN cd /usr/share/elasticsearch/plugins/ingest-attachment/ && curl -O https://repo1.maven.org/maven2/org/apache/poi/poi-scratchpad/5.2.1/poi-scratchpad-5.2.1.jar
 RUN rm /usr/share/elasticsearch/modules/x-pack-identity-provider/xmlsec-2.1.4.jar /usr/share/elasticsearch/modules/x-pack-security/xmlsec-2.1.4.jar
 RUN cd /usr/share/elasticsearch/modules/x-pack-identity-provider/ && curl -O https://repo1.maven.org/maven2/org/apache/santuario/xmlsec/2.2.6/xmlsec-2.2.6.jar
 RUN cp /usr/share/elasticsearch/modules/x-pack-identity-provider/xmlsec-2.2.6.jar /usr/share/elasticsearch/modules/x-pack-security/
-RUN rm /usr/share/elasticsearch/plugins/ingest-attachment/tika-core-1.27.jar
-RUN cd /usr/share/elasticsearch/plugins/ingest-attachment/ && curl -O https://repo1.maven.org/maven2/org/apache/tika/tika-core/1.28.3/tika-core-1.28.3.jar
-RUN rm /usr/share/elasticsearch/lib/tools/plugin-cli/bc-fips-1.0.2.jar
-RUN cd /usr/share/elasticsearch/lib/tools/plugin-cli/ && curl -O https://repo1.maven.org/maven2/org/bouncycastle/bc-fips/1.0.2.4/bc-fips-1.0.2.4.jar
-RUN rm /usr/share/elasticsearch/lib/tools/security-cli/bcprov-jdk15on-1.64.jar /usr/share/elasticsearch/plugins/ingest-attachment/bcprov-jdk15on-1.64.jar
-RUN cd /usr/share/elasticsearch/lib/tools/security-cli/ && curl -O https://repo1.maven.org/maven2/org/bouncycastle/bcprov-jdk15on/1.70/bcprov-jdk15on-1.70.jar
-RUN cp /usr/share/elasticsearch/lib/tools/security-cli/bcprov-jdk15on-1.70.jar /usr/share/elasticsearch/plugins/ingest-attachment/
-RUN rm /usr/share/elasticsearch/bin/elasticsearch-sql-cli-7.17.16.jar
+RUN rm /usr/share/elasticsearch/bin/elasticsearch-sql-cli-7.17.17.jar
 RUN rm /usr/share/elasticsearch/lib/snakeyaml-1.33.jar
 RUN cd /usr/share/elasticsearch/lib/ && curl -O https://repo1.maven.org/maven2/org/yaml/snakeyaml/2.2/snakeyaml-2.2.jar
 
